@@ -78,41 +78,17 @@ vector<Transaccion> Billetera::ultimas_transacciones(int k) const {
 }
 
 vector<id_billetera> Billetera::detinatarios_mas_frecuentes(int k) const {
-  const list<Transaccion> transacciones = _blockchain->transacciones();
-
-  // cuento la cantidad de transacciones salientes por cada billetera de destino
-  map<id_billetera, int> transacciones_por_billetera;
-  auto it = transacciones.begin();
-  while (it != transacciones.end()) {
-    if (it->origen == _id) {
-      // notar que el map devuelve 0 por default!
-      transacciones_por_billetera[it->destino]++;
-    }
-    ++it;
+  //invierto las claves y valores del map para poder recorrerlo por cant de envios
+  map<int, id_billetera> ordenados;
+  for (const auto& [dest, cant] : _billeteras_frecuentes) {
+    ordenados[cant] = dest;
   }
 
-  // invierto el map de forma que puedo accedes a las billeteras según su
-  // cantidad de transacciones.
-  map<int, vector<id_billetera>> billeteras_por_cantidad_de_transacciones;
-  auto it2 = transacciones_por_billetera.begin();
-  while (it2 != transacciones_por_billetera.end()) {
-    billeteras_por_cantidad_de_transacciones[it2->second].push_back(it2->first);
-    ++it2;
+  //creo un vector al que ponerle los destinatarios
+  vector<id_billetera> ret;
+  //como el map se recorre en orden ascendente, lo recorro a desde el final.
+  for(auto it = ordenados.rbegin(); it != ordenados.rend() && ret.size()<k ; ++it){
+    ret.push_back(it->second);
   }
-
-  // recorro el map usando un iterador en orden inverso, que me lleva por todos
-  // los pares de entradas desde la mayor clave hasta la menor.
-  vector<id_billetera> ret = {};
-  auto it3 = billeteras_por_cantidad_de_transacciones.rbegin();
-  while (it3 != billeteras_por_cantidad_de_transacciones.rend() && ret.size() < k) {
-    vector<id_billetera> siguiente_grupo = it3->second;
-    int i = 0;
-    while (i < siguiente_grupo.size() && ret.size() < k) {
-      ret.push_back(siguiente_grupo[i]);
-      i++;
-    }
-    ++it3;
-  }
-
   return ret;
 }
