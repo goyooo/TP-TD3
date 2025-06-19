@@ -79,16 +79,22 @@ vector<Transaccion> Billetera::ultimas_transacciones(int k) const {
 
 vector<id_billetera> Billetera::detinatarios_mas_frecuentes(int k) const {
   //invierto las claves y valores del map para poder recorrerlo por cant de envios
-  map<int, id_billetera> ordenados;
+  map<int, vector<id_billetera>> ordenados;
   for (const auto& [dest, cant] : _billeteras_frecuentes) {
-    ordenados[cant] = dest;
+    ordenados[cant].push_back(dest);
   }
 
   //creo un vector al que ponerle los destinatarios
   vector<id_billetera> ret;
   //como el map se recorre en orden ascendente, lo recorro a desde el final.
   for(auto it = ordenados.rbegin(); it != ordenados.rend() && ret.size()<k ; ++it){
-    ret.push_back(it->second);
+    for (id_billetera dest : it->second) {
+      if (ret.size() < k) {
+        ret.push_back(dest);
+      } else {
+        break;
+      }
+    }
   }
   return ret;
 }
